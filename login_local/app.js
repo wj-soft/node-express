@@ -47,7 +47,7 @@ app.post('/process/signup', function(req, res) {
 
     var UserSchema = mongoose.Schema({
         id: { type: String, require: true, unique: true },
-        password: { type: String, require: true, unique: true },
+        password: { type: String, require: true },
         name: { type: String }
     })
 
