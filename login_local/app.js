@@ -7,6 +7,7 @@ var expressSession = require('express-session')
 var expressErrorHandler = require('express-error-handler')
 var mongodb = require('mongodb')
 var MongoClient = require('mongodb').MongoClient
+var mongoose = require('mongoose')
 
 
 var app = express()
@@ -29,20 +30,48 @@ app.use(expressSession({
 var database;
 
 function connectDB() {
-    var databaseUrl = 'mongodb://localhost:27017/local';
-    mongodb.connect(databaseUrl, function(err, db) {
+
+    mongoose.connect('mongodb://localhost:27017/local', function(err, db) {
         if (err) throw err;
-        console.log('데이터베이스에 연결되었습니다. : ' + databaseUrl);
-        database = db;
-    });
+        console.log("데이터베이스 연결")
+        database = db
+    })
 }
+// 회원가입
+app.post('/process/signup', function(req, res) {
+    console.log("회원가입 호출됨")
+
+    var paramId = req.body.id
+    var paramPassword = req.body.password
+    var paramName = req.body.name
+
+    var UserSchema = mongoose.Schema({
+        id: { type: String, require: true, unique: true },
+        password: { type: String, require: true, unique: true },
+        name: { type: String }
+    })
+
+    var UserModel = mongoose.model("users", UserSchema)
+
+    var person = new UserModel({ id: paramId, name: paramName, password: paramPassword });
+
+    person.save(function(err, res) {
+        if (err) {
+            console.log("에러가 발생하였습니다")
+            return;
+        }
+        console.log("user데이타 추가완료" + res)
+    })
+
+
+})
 
 // 로그인 처리 함수
 app.post('/process/login', function(req, res) {
     console.log('/process/login 호출됨.');
 
-    var paramId = req.param('id');
-    var paramPassword = req.param('password');
+    var paramId = req.body.id;
+    var paramPassword = req.body.password;
 
     if (database) {
         authUser(database, paramId, paramPassword, function(err, docs) {
